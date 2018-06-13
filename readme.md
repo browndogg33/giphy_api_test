@@ -1,17 +1,22 @@
-CLI command to run the tests:
+#Giphy Test Project
+
+##Summary
+Project created to run some sample API tests against the [Giphy](http://www.giphy.com) API.  Initial project tests getting
+a gif by id.  Assignment is to test the get sticker pack by id endpoint.
+
+##Prerequisites
+* Java installed
+* Git installed
+* Maven installed
+
+##Command to kick off the test suite
+Run this inside the project root
+<code>
 mvn test
+</code>
 
-Test Suites - values for ${RUNNER}
-RunGiphyTestsAll - Test suite with tests that are required to pass
+##Reference Documentation
+* [Rest Assured](https://github.com/rest-assured/rest-assured/wiki/Usage)
+* [Giphy API Docs](https://developers.giphy.com/docs/) Testing Individual Sticker Pack Endpoint
 
-Prerequisites
-Maven installed
-Git installed
-Java installed
-
-
-Reference Documentation:
-Rest Assured
-Giphy API Docs (focused only on Sticker Pack API call by )- https://developers.giphy.com/docs/
-Sticker Packs: Individual Sticker Pack Endpoint
 
