@@ -10,7 +10,6 @@ on Giphy - https://developers.giphy.com/docs/#sticker-packs-individual-endpoint.
 test suite for getting a gif by id.
 * Create a test with basic assertions that gets the gifs related to the term "basketball", limit the results to 5, and limit the 
 rating of the results to "g"
-* This should take no longer than an hour or so
 
 ## Prerequisites
 * Java installed
