@@ -14,7 +14,7 @@ import static org.hamcrest.Matchers.*;
 @SpringBootTest
 public class GiphyTests {
 
-    private static final String API_KEY = "YOUR_API_KEY";
+    private static final String API_KEY = "YOUR API KEY GOES HERE";
     private static final String BAD_API_KEY = "XXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 
     //GIF Tests
@@ -36,7 +36,7 @@ public class GiphyTests {
     public void getGifByIdNoAPIKey(){
         when().
                 get("http://api.giphy.com/v1/gifs/zdIGTIdD1mi4").
-                then().
+        then().
                 statusCode(401)
                 .body("message", equalTo("No API key found in request"));
     }
@@ -47,7 +47,7 @@ public class GiphyTests {
                 param("api_key", BAD_API_KEY).
         when().
                 get("http://api.giphy.com/v1/gifs/zdIGTIdD1mi4").
-                then().
+        then().
                 statusCode(403)
                 .body("message", equalTo("Invalid authentication credentials"));
     }
@@ -58,12 +58,12 @@ public class GiphyTests {
                 param("api_key", API_KEY).
         when().
                 get("http://api.giphy.com/v1/gifs/zdIGTIdD1mi4XXXX").
-                then().
+        then().
                 statusCode(404)
                 .body("meta.msg", equalTo("Not Found"));
     }
 
     //TODO
-    //Sticker Pack Tests Go Here - Root url is http://api.giphy.com/v1/stickers/packs/{id}
+    //Sticker Search test code goes here
 
 }
