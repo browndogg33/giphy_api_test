@@ -5,6 +5,7 @@ import com.giphy.test.category.ApiTests;
 
 import org.hamcrest.collection.IsEmptyCollection;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
 @SpringBootTest
 public class GiphyTests {
 
-    private static final String API_KEY = "wFO9Gm7htYgMzTcZ7BXMpI5aRrsuLOzQ";
+    private static String API_KEY = Props.retrieveApiKey();;
     private static final String BAD_API_KEY = "XXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 
     @BeforeClass 
@@ -81,7 +82,6 @@ public class GiphyTests {
     }
 
     //Sticker Search Tests
-
     @Test
     public void stickerSearchNoApiKey() {
         when()
@@ -116,7 +116,7 @@ public class GiphyTests {
                 .body("pagination.total_count", is(0)); 
     }
 
-    private ValidatableResponse checkStickerSearchSuccess(final Response response) {
+    private ValidatableResponse assertValidResponse(final Response response) {
         return response.then()
                 .statusCode(200)
                 .body("meta.status", is(200))
@@ -133,7 +133,7 @@ public class GiphyTests {
         .when()
                 .get("/stickers/search");
 
-        checkStickerSearchSuccess(response)
+        assertValidResponse(response)
                 .body("data", hasSize(5))
                 .body("pagination.total_count", is(greaterThanOrEqualTo(5)));
     }
@@ -148,7 +148,7 @@ public class GiphyTests {
         .when()
                 .get("/stickers/search"); 
 
-        checkStickerSearchSuccess(response)
+        assertValidResponse(response)
                 .body("data", hasSize(50))
                 .body("pagination.total_count", is(greaterThanOrEqualTo(50)));
     }
@@ -161,7 +161,7 @@ public class GiphyTests {
         .when()
                 .get("/stickers/search");
 
-        checkStickerSearchSuccess(response);
+        assertValidResponse(response);
         return response.path("data.collect { it.id }");
     }
 
@@ -181,15 +181,24 @@ public class GiphyTests {
             .when()
                     .get("/stickers/search");
 
-            checkStickerSearchSuccess(response)
+                assertValidResponse(response)
                     .body("data", hasSize(1))
                     .body("data[0].id", is(expectedId));
         }
     }
 
+    private final static List<String> acceptableRatings = Arrays.asList("g", "pg","pg-13", "r");
+
+    //rating can be up to requested rating, so we build up our filter
+    private String buildRatingsFilter(final int toIndex) {
+        return acceptableRatings.subList(0, toIndex)
+                .stream()
+                .map(currentRating -> "it.rating != '" + currentRating + "'")
+                .collect(Collectors.joining(" && "));
+    }
+
     @Test
     public void stickerSearchRatings() {  
-        final List<String> acceptableRatings = Arrays.asList("g", "pg","pg-13", "r");
         for(int index = 0; index < acceptableRatings.size(); ++index) {
                 final String rating = acceptableRatings.get(index);
                 final Response response = given()
@@ -199,16 +208,125 @@ public class GiphyTests {
                 .when()
                         .get("/stickers/search");
 
-                //rating can be up to requested rating, so we build up our filter
-                final String gpathClosure = 
-                        acceptableRatings.subList(0, index + 1)
-                        .stream()
-                        .map(currentRating -> "it.rating != '" + currentRating + "'")
-                        .collect(Collectors.joining(" && "));
-
-                checkStickerSearchSuccess(response)
-                        .body("data.findAll { " + gpathClosure + " }", IsEmptyCollection.empty());
+                assertValidResponse(response)
+                        .body("data.findAll { " + buildRatingsFilter(index + 1) + " }", IsEmptyCollection.empty());
         }
     }
 
+    //Trending GIF Tests
+    @Test
+    public void gifTrendingNoApiKey() {
+        when()
+                .get("/gif/trending")
+        .then()
+                .statusCode(401)
+                .body("message", equalTo("No API key found in request"));
+    }
+
+    @Test
+    public void gifTrendingInvalidApiKey() {
+        given()
+                .param("api_key", BAD_API_KEY)
+        .when()
+                .get("/gifs/trending")
+        .then()
+                .statusCode(403)
+                .body("message", equalTo("Invalid authentication credentials")); 
+    }
+
+    @Ignore("Their docs say that the default of limit is 25, but if you leave it off, you get 50")
+    @Test
+    public void gifTrendingDefaults() {
+        final Response response = given()
+                .param("api_key", API_KEY)
+        .when()
+                .get("/gifs/trending");
+
+        assertValidResponse(response)
+                .body("data", hasSize(25))
+                .body("pagination.total_count", is(greaterThanOrEqualTo(25)))
+                .body("pagination.count", is(25))
+                .body("pagination.offset", is(0));
+    }
+
+    @Test
+    public void gifTrendingLimit() {
+        final Response response = given()
+                .param("api_key", API_KEY)
+                .param("q", "cheeseburgers")
+                .param("limit", 5)
+        .when()
+                .get("/gifs/trending");
+
+        assertValidResponse(response)
+                .body("data", hasSize(5))
+                .body("pagination.total_count", is(greaterThanOrEqualTo(5)))
+                .body("pagination.count", is(5));
+    }
+
+    @Test
+    public void gifTrendingLimitBetaApiKeyLimit() {
+        //Check that Beta API key limits to 50 no matter what is requested
+        final Response response = given()
+                .param("api_key", API_KEY)
+                .param("q", "cheeseburgers")
+                .param("limit", "100") 
+        .when()
+                .get("/gifs/trending");
+
+        assertValidResponse(response)
+                .body("data", hasSize(50))
+                .body("pagination.total_count", is(greaterThanOrEqualTo(50)))
+                .body("pagination.count", is(50));
+    }
+
+    private List<String> getExpectedOffsetIdsForTrending() {
+        final Response response = given()
+                .param("api_key", API_KEY)
+                .param("limit", "10") 
+        .when()
+                .get("/gifs/trending");
+
+        assertValidResponse(response);
+        System.out.println((List<String>)response.path("data.collect { it.id }") );
+        return response.path("data.collect { it.id }");
+    }
+
+    //TODO: need to figure out why this test is failing
+    @Test
+    public void gifTrendingOffset() {
+        final List<String> expectedList = getExpectedOffsetIdsForTrending();
+
+        for(int index = 0; index < expectedList.size(); ++index) {
+                System.out.println(index);
+            final String expectedId = expectedList.get(index);
+            System.out.println("expected id = " + expectedId);
+
+            final Response response = given()
+                    .param("api_key", API_KEY)
+                    .param("limit", "1")
+                    .param("offset", String.valueOf(index))
+            .when()
+                .get("/gifs/trending");
+
+                assertValidResponse(response)
+                    .body("data", hasSize(1))
+                    .body("data[0].id", is(expectedId));
+        }
+    }
+
+    @Test
+    public void gifTrendingRatings() {  
+        for(int index = 0; index < acceptableRatings.size(); ++index) {
+                final String rating = acceptableRatings.get(index);
+                final Response response = given()
+                        .param("api_key", API_KEY)
+                        .param("rating", rating)
+                .when()
+                        .get("/gifs/trending");
+
+                assertValidResponse(response)
+                        .body("data.findAll { " + buildRatingsFilter(index + 1) + " }", IsEmptyCollection.empty());
+        }
+    }
 }

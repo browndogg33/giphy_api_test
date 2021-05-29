@@ -7,6 +7,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Set up test props
+        run: echo 'api_key=${{ secrets.GIPHY_API_KEY }}' > test.properties
+
       - uses: actions/setup-java@v2
         with:
           java-version: "8"
