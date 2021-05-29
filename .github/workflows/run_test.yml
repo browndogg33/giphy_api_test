@@ -12,5 +12,12 @@ jobs:
           java-version: "8"
           distribution: "adopt"
 
+      - uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
       - name: Run the Maven test command
         run: mvn test

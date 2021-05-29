@@ -18,6 +18,7 @@ import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Category(ApiTests.class)
 @SpringBootTest
@@ -186,16 +187,27 @@ public class GiphyTests {
     }
 
     @Test
-    public void stickerSearchRatings() {        
-        final Response response = given()
-                .param("api_key", API_KEY)
-                .param("q", "death")
-                .param("rating", "g")
-        .when()
-                .get("/stickers/search");
+    public void stickerSearchRatings() {  
+        final List<String> acceptableRatings = List.of("g", "pg","pg-13", "r");
+        for(int index = 0; index < acceptableRatings.size(); ++index) {
+                final String rating = acceptableRatings.get(index);
+                final Response response = given()
+                        .param("api_key", API_KEY)
+                        .param("q", "death")
+                        .param("rating", rating)
+                .when()
+                        .get("/stickers/search");
 
-        checkStickerSearchSuccess(response)
-                .body("data.findAll { it.rating != 'g' }", IsEmptyCollection.empty());
+                //rating can be up to requested rating, so we build up our filter
+                final String gpathClosure = 
+                        acceptableRatings.subList(0, index + 1)
+                        .stream()
+                        .map(currentRating -> "it.rating != '" + currentRating + "'")
+                        .collect(Collectors.joining(" && "));
+
+                checkStickerSearchSuccess(response)
+                        .body("data.findAll { " + gpathClosure + " }", IsEmptyCollection.empty());
+        }
     }
 
 }
