@@ -1,0 +1,16 @@
+name: Run Maven Tests
+on: [push]
+jobs:
+  maven-run:
+    runs-on: ubuntu-latest
+    name: API Tests
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-java@v2
+        with:
+          java-version: "8"
+          distribution: "adopt"
+
+      - name: Run the Maven test command
+        run: mvn test
