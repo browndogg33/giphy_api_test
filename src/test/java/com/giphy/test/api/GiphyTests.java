@@ -17,6 +17,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -188,7 +189,7 @@ public class GiphyTests {
 
     @Test
     public void stickerSearchRatings() {  
-        final List<String> acceptableRatings = List.of("g", "pg","pg-13", "r");
+        final List<String> acceptableRatings = Arrays.asList("g", "pg","pg-13", "r");
         for(int index = 0; index < acceptableRatings.size(); ++index) {
                 final String rating = acceptableRatings.get(index);
                 final Response response = given()
