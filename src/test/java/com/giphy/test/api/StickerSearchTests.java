@@ -12,6 +12,7 @@ import java.util.List;
 import com.giphy.test.category.ApiTests;
 
 import org.hamcrest.collection.IsEmptyCollection;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -54,7 +55,21 @@ public class StickerSearchTests extends GiphyTestBase {
                 .body("pagination.total_count", is(0)); 
     }
 
+    @Ignore("Their docs say that the default of limit is 25, but if you leave it off, you get 50")
+    @Test
+    public void stickerSearchDefaults() {
+        final Response response = given()
+                .param("api_key", API_KEY)
+                .param("q", "unique")
+        .when()
+                .get("/stickers/search");
 
+        assertValidResponse(response)
+                .body("data", hasSize(25))
+                .body("pagination.total_count", is(greaterThanOrEqualTo(25)))
+                .body("pagination.count", is(25))
+                .body("pagination.offset", is(0));
+    }
 
     @Test
     public void stickerSearchLimit() {
