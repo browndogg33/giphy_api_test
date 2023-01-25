@@ -1,0 +1,26 @@
+name: Run Maven Tests
+on: [push]
+jobs:
+  maven-run:
+    runs-on: ubuntu-latest
+    name: API Tests
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up test props
+        run: echo 'api_key=${{ secrets.GIPHY_API_KEY }}' > test.properties
+
+      - uses: actions/setup-java@v2
+        with:
+          java-version: "8"
+          distribution: "adopt"
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Run the Maven test command
+        run: mvn test
