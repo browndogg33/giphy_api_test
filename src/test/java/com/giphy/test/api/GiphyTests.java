@@ -14,7 +14,7 @@ import static org.hamcrest.Matchers.*;
 @SpringBootTest
 public class GiphyTests {
 
-    private static final String API_KEY = "gpUyROOE6QF2GlJD2Jy59gIuX6mNpb7q";
+    private static final String API_KEY = "YOUR_API_KEY_GOES_HERE";
     private static final String BAD_API_KEY = "XXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 
     //GIF Tests
