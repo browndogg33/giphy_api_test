@@ -14,7 +14,7 @@ import static org.hamcrest.Matchers.*;
 @SpringBootTest
 public class GiphyTests {
 
-    private static final String API_KEY = "YOUR API KEY GOES HERE";
+    private static final String API_KEY = "gpUyROOE6QF2GlJD2Jy59gIuX6mNpb7q";
     private static final String BAD_API_KEY = "XXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 
     //GIF Tests
@@ -38,7 +38,9 @@ public class GiphyTests {
                 get("http://api.giphy.com/v1/gifs/zdIGTIdD1mi4").
         then().
                 statusCode(401)
-                .body("message", equalTo("No API key found in request"));
+                .body("meta.status", equalTo(401))
+                .body("meta.msg", equalTo("No API key found in request."))
+                .body("meta.response_id", isEmptyString());
     }
 
     @Test
@@ -48,8 +50,10 @@ public class GiphyTests {
         when().
                 get("http://api.giphy.com/v1/gifs/zdIGTIdD1mi4").
         then().
-                statusCode(403)
-                .body("message", equalTo("Invalid authentication credentials"));
+                statusCode(401)
+                .body("meta.status", equalTo(401))
+                .body("meta.msg", equalTo("Unauthorized"))
+                .body("meta.response_id", isEmptyString());
     }
 
     @Test
@@ -60,7 +64,9 @@ public class GiphyTests {
                 get("http://api.giphy.com/v1/gifs/zdIGTIdD1mi4XXXX").
         then().
                 statusCode(404)
-                .body("meta.msg", equalTo("Not Found"));
+                .body("meta.msg", equalTo("Not Found"))
+                .body("meta.status", equalTo(404))
+                .body("meta.error_code", equalTo(404));
     }
 
     //TODO
